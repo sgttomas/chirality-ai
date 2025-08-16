@@ -1,9 +1,77 @@
-# Chirality AI — Developer Setup Guide
+# Chirality AI: Meta-Learning Framework Monorepo
 
-This guide gets you from zero to a working Chirality AI dev environment on macOS, following the simple → complex plan:
-- **Step 1**: Dockerized backend (Neo4j, GraphQL/Gateway, Admin/Orchestrator)
-- **Step 2**: Local frontend (Next.js) for fast iteration
-- **Step 3**: Optional Electron wrapper to orchestrate Docker and open the app with one click
+## 🧠 The Chirality Framework
+
+This monorepo implements the **Chirality Framework** - a meta-ontological methodology for generating reliable knowledge about generating reliable knowledge. The framework operates through systematic **12-station semantic valley progression** and has been validated through self-referential implementation.
+
+### Core Framework Principles
+
+**Meta-Learning Methodology**
+The Chirality Framework progresses through a 12-station semantic valley:
+Problem Statement → Requirements → Objectives → Output → Verification → Validation → Evaluation → Assessment → Implementation → Instantiation → Reflection → Resolution
+
+**Self-Referential Validation**
+This implementation proves the framework's effectiveness by applying it to the meta-problem of "generating reliable knowledge" - successfully using the methodology to validate the methodology itself.
+
+**LLM as Semantic Interpolation Engine**
+Large Language Models serve exclusively as **semantic interpolation engines** that resolve abstract word pairings into coherent concepts through semantic multiplication (`*`), while the framework maintains strict separation between constructive operations (human-designed) and generative operations (LLM-resolved).
+
+## 🏗️ Production Application Orchestrator
+
+This repository serves as the **production application orchestrator** for the Chirality Framework ecosystem. It demonstrates how all framework components integrate to create a complete meta-learning system.
+
+### Component Architecture
+
+**🔄 Complete Framework Ecosystem:**
+- **[Chirality-Framework](https://github.com/sgttomas/Chirality-Framework)**: Core semantic engine + backend services
+- **[Chirality-chat](https://github.com/sgttomas/Chirality-chat)**: Modern chat interfaces (2 variants)
+- **This Repository**: Production orchestration + desktop packaging
+
+### How Components Work Together
+
+1. **Backend Services** (from Chirality-Framework)
+   - GraphQL service provides semantic matrix operations
+   - Admin service orchestrates CLI tools and processes
+   - Neo4j database persists semantic valley progression
+
+2. **Frontend Applications** (from Chirality-chat)
+   - Chat interfaces provide conversational access to framework
+   - LLMs perform semantic interpolation within framework constraints
+   - Real-time document generation and RAG integration
+
+3. **Production Orchestration** (this repository)
+   - Docker Compose configuration for unified deployment
+   - Electron desktop wrapper for one-click experience
+   - Development environment for integrated testing
+
+## 🚀 Quick Production Setup
+
+### Single-Command Deployment
+```bash
+# Start complete production stack
+docker compose up -d
+
+# Access applications:
+# - Chat Interface: http://localhost:3000
+# - GraphQL API: http://localhost:8080/graphql
+# - Admin Dashboard: http://localhost:3001
+# - Neo4j Browser: http://localhost:7474
+```
+
+### Desktop Application (One-Click Experience)
+```bash
+cd desktop
+npm install
+npm run build    # Creates platform-specific installers
+npm run dev      # Development mode with auto-orchestration
+```
+
+## 🚀 Developer Setup Guide
+
+For development across the ecosystem:
+- **Step 1**: Backend services via Docker Compose
+- **Step 2**: Frontend development servers for iteration
+- **Step 3**: Desktop packaging for distribution
 
 ---
 
@@ -33,7 +101,9 @@ brew install jq wget
 
 ## 1) Project Structure
 
-**Monorepo Structure** - This repository contains both frontend and backend:
+### Split-Apps Architecture
+
+This monorepo demonstrates the framework's **Split-Apps Architecture**, separating concerns between semantic operations and user interfaces:
 
 ```
 chirality-ai/                    # This repository
@@ -351,6 +421,18 @@ chirality-ai/
 
 ---
 
-This setup provides a robust, scalable development environment that matches production deployment patterns while maintaining the fast iteration cycle needed for active development.
+## 📚 Framework Documentation
+
+- **[Chirality-Framework](https://github.com/sgttomas/Chirality-Framework)**: Core semantic engine and GraphQL service
+- **[Chirality-chat](https://github.com/sgttomas/Chirality-chat)**: Modern chat interface implementation
+- **[Chirality-ai-app](https://github.com/sgttomas/Chirality-ai-app)**: Production application interface
+
+## 🤝 Contributing
+
+This project implements a **reasoning compiler** that systematically generates reliable knowledge across arbitrary domains. Contributions should maintain the framework's meta-learning integrity and respect the boundary between constructive (human-designed) and generative (LLM-resolved) operations.
+
+---
+
+*This monorepo demonstrates the Chirality Framework's ability to bridge human meta-cognition with AI semantic interpolation capabilities, contributing to the advancement of AI reasoning methodology and knowledge generation systems.*
 
 🤖 **Ready to build with the Chirality Framework!**

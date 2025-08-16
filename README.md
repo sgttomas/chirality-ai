@@ -66,12 +66,13 @@ npm run build    # Creates platform-specific installers
 npm run dev      # Development mode with auto-orchestration
 ```
 
-## 🚀 Developer Setup Guide
+## 🛠️ Complete Developer Setup Guide
 
-For development across the ecosystem:
-- **Step 1**: Backend services via Docker Compose
-- **Step 2**: Frontend development servers for iteration
-- **Step 3**: Desktop packaging for distribution
+This guide gets you from zero to a working Chirality AI dev environment on macOS, following the simple → complex plan:
+
+**Step 1**: GraphQL backend service  
+**Step 2**: Dual frontend setup (AI App + Semantic Framework)  
+**Step 3**: Electron desktop wrapper for unified experience
 
 ---
 
@@ -80,208 +81,279 @@ For development across the ecosystem:
 Install dependencies:
 
 ```bash
-# Docker Desktop (required)
+# Docker Desktop (required for Neo4j)
 # Install from https://www.docker.com/products/docker-desktop/
-# After install, open Docker Desktop at least once so the daemon is running.
+# After install, open Docker Desktop at least once so the daemon is running
 
-# Node.js 20.x (recommended)
-brew install nvm
-mkdir -p ~/.nvm
-echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.zshrc
-echo '[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && . "/opt/homebrew/opt/nvm/nvm.sh"' >> ~/.zshrc
-source ~/.zshrc
+# Node.js 20.x (recommended; LTS until April 2026)
+# Install nvm (Node Version Manager) officially
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+# Close and reopen your terminal, or run: source ~/.zshrc
 nvm install 20
 nvm use 20
+nvm alias default 20
 
 # Optional but useful
-brew install jq wget
+brew install jq wget curl
+```
+
+Verify installation:
+```bash
+nvm --version  # Should show 0.40.0 or similar
+node --version # Should show v20.x.x
+docker --version # Should show Docker version
 ```
 
 ---
 
 ## 1) Project Structure
 
-### Split-Apps Architecture
-
-This monorepo demonstrates the framework's **Split-Apps Architecture**, separating concerns between semantic operations and user interfaces:
+**Multi-Repository Structure** - Chirality AI is split across specialized repositories:
 
 ```
-chirality-ai/                    # This repository
-├── frontend/                    # Next.js application (product app)
-│   ├── src/                    # React components and pages
-│   ├── package.json            # Frontend dependencies
-│   └── README.md               # Frontend documentation
-├── backend/                     # GraphQL + Admin services
-│   ├── graphql/                # GraphQL service with Neo4j integration
-│   └── admin/                  # Admin/Orchestrator service with Python CLI wrapper
-├── compose/                     # Docker Compose orchestration
-│   └── docker-compose.yml      # Backend services definition
-├── desktop/                     # Electron desktop wrapper
-├── scripts/chirality           # Helper script for Docker operations
-└── .env.example                # Environment template
+ai-env/                                    # Your workspace
+├── chirality-ai-app/                      # Document generation UI (port 3000)
+│   ├── src/app/chirality-core/           # Core document workflow
+│   ├── src/components/                   # UI components
+│   └── package.json
+├── chirality-semantic-framework/          # Backend framework (port 3002)
+│   ├── graphql-service/                  # GraphQL API (port 8080)
+│   ├── src/app/                         # Chat & matrix interfaces
+│   └── package.json
+└── chirality-ai/                         # Desktop wrapper (this repo)
+    ├── desktop/                          # Electron app
+    ├── scripts/                          # Setup scripts
+    └── README.md                         # Complete setup guide (this file)
 ```
 
 ---
 
-## 2) Configure environment variables
+## 2) Clone Related Repositories
 
 ```bash
-# From the root of this repository
-cp .env.example .env
-open -e .env
+# Create workspace (if not already done)
+mkdir -p ~/chirality-ai-workspace && cd ~/chirality-ai-workspace
+
+# Clone the related repositories alongside this one
+git clone https://github.com/sgttomas/Chirality-chat.git chirality-ai-app
+git clone https://github.com/sgttomas/Chirality-Framework.git chirality-semantic-framework
+# chirality-ai repository is this current repo
 ```
 
-Set at least:
+---
 
+## 3) Environment Configuration
+
+Each service has its own `.env` configuration:
+
+### **chirality-ai-app/.env.local**
 ```env
-OPENAI_API_KEY=sk-...           # Your OpenAI key
-NEO4J_PASSWORD=<strong_pw>      # Password for Neo4j
+# OpenAI API Key (required)
+OPENAI_API_KEY=sk-proj-your-api-key
+OPENAI_MODEL=gpt-4.1-nano
+DEFAULT_TEMPERATURE=0.6
 
-# Ports (keep defaults unless needed)
-ADMIN_PORT=3001
-GRAPHQL_PORT=8080
-NEO4J_HTTP_PORT=7474
-NEO4J_BOLT_PORT=7687
-FRONTEND_PORT=3210
+# Backend connections
+NEXT_PUBLIC_GRAPHQL_URL=http://localhost:8080/graphql
+NEXT_PUBLIC_ORCHESTRATOR_URL=http://localhost:3001
+
+# Neo4j (optional, for legacy features)
+NEO4J_URI=neo4j+s://your-instance.databases.neo4j.io
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=your-password
 ```
 
-This .env is the only place for local ports/keys — both backend and frontend should read from it.
+### **chirality-semantic-framework/.env.local**
+```env
+# Neo4j Configuration
+NEO4J_URI=neo4j+s://your-instance.databases.neo4j.io
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=your-password
 
----
+# OpenAI API
+OPENAI_API_KEY=sk-proj-your-api-key
+OPENAI_MODEL=gpt-4.1-nano
 
-## 3) Step 1 — Start the backend in Docker
-
-Make the helper executable (first time only):
-
-```bash
-chmod +x ./scripts/chirality
+# GraphQL Service
+NEXT_PUBLIC_GRAPH_API=http://localhost:8080/graphql
+NEXT_PUBLIC_USE_GRAPHQL=true
 ```
 
-Start the stack:
+### **chirality-semantic-framework/graphql-service/.env**
+```env
+# Neo4j Connection
+NEO4J_URI=neo4j+s://your-instance.databases.neo4j.io
+NEO4J_USERNAME=neo4j
+NEO4J_PASSWORD=your-password
+NEO4J_DATABASE=neo4j
 
-```bash
-./scripts/chirality up --build
-```
-
-Check endpoints:
-- **Admin UI**: http://localhost:3001
-- **GraphQL**: http://localhost:8080/graphql
-- **Neo4j Browser**: http://localhost:7474 (neo4j / your password)
-
-Stop the stack:
-
-```bash
-./scripts/chirality down
-```
-
-Other useful commands:
-
-```bash
-./scripts/chirality logs
-./scripts/chirality status
+# Service Configuration
+PORT=8080
+NODE_ENV=development
 ```
 
 ---
 
-## 4) Step 2 — Run the frontend locally
-
-The frontend is located in the `frontend/` directory of this repository:
+## 4) Step 1 — Start GraphQL Backend
 
 ```bash
-cd frontend
+cd ../chirality-semantic-framework/graphql-service
 npm install
-npm run dev     # Development server at http://localhost:3000
-# or
-npm run build && npm run start   # Production build
-```
-
-Frontend should point to:
-- `NEXT_PUBLIC_GRAPHQL_URL=http://localhost:8080/graphql`
-
----
-
-## 5) Health checks
-
-- **Neo4j**: http://localhost:7474 → login works
-- **GraphQL**:
-  ```bash
-  curl -s http://localhost:8080/health
-  ```
-- **Admin**:
-  ```bash
-  curl -s http://localhost:3001/api/health
-  ```
-- **Frontend**: http://localhost:3210 → can call GraphQL
-
----
-
-## 6) Reset Neo4j data (if needed)
-
-```bash
-./scripts/chirality down
-docker volume rm chirality_neo4j-data chirality_neo4j-logs
-./scripts/chirality up
-```
-
----
-
-## 7) Step 3 — Electron desktop app (optional)
-
-Dev run:
-
-```bash
-cd "/Users/ryan/Desktop/ai-env/chirality-ai/desktop"
-npm install
-npx ts-node src/main.ts
-```
-
-- Runs the same docker compose up -d as Step 1
-- Opens the frontend when services are ready
-- Provides a unified double-click experience
-
-Build installers:
-
-```bash
-cd "/Users/ryan/Desktop/ai-env/chirality-ai/desktop"
-npm run build
-```
-
----
-
-## 8) What's Dockerized & What's Not
-
-✅ **Dockerized**:
-- Neo4j (with plugins, persistence)
-- GraphQL/Gateway
-- Admin/Orchestrator
-
-🚫 **Not Dockerized** (during dev):
-- Next.js frontend
-- Electron desktop wrapper
-
----
-
-## 9) Daily workflow
-
-```bash
-# Start backend (from repository root)
-./scripts/chirality up
-
-# Start frontend (in separate terminal)
-cd frontend
 npm run dev
-
-# Stop backend
-./scripts/chirality down
 ```
 
-Or use Electron for double-click startup.
+Verify GraphQL service:
+- **GraphQL Playground**: http://localhost:8080/graphql
+- **Health check**: `curl http://localhost:8080/health`
+
+---
+
+## 5) Step 2 — Start Frontend Services
+
+### **Terminal 1: Semantic Framework (port 3002)**
+```bash
+cd ../chirality-semantic-framework
+npm install
+PORT=3002 npm run dev
+```
+
+### **Terminal 2: AI App (port 3000)**
+```bash
+cd ../chirality-ai-app
+npm install
+# Note: May need to remove predev linting if errors occur
+npm run dev
+```
+
+**Service URLs:**
+- **AI App**: http://localhost:3000 (main chat interface)
+- **Chirality Core**: http://localhost:3000/chirality-core ⭐ (document generation)
+- **Semantic Framework**: http://localhost:3002 (backend operations)
+
+---
+
+## 6) Step 3 — Electron Desktop App
+
+```bash
+cd desktop
+npm install
+
+# Development mode
+npm run compile
+npm start
+```
+
+The Electron app will:
+- Detect existing services on ports 3000, 3002, 8080
+- Display http://localhost:3000/chirality-core in native window
+- Show service status in real-time
+
+---
+
+## 7) Complete URL Reference
+
+### **Chirality AI App (Port 3000)**
+- http://localhost:3000 - Main chat interface
+- **http://localhost:3000/chirality-core** - Core document generation ⭐
+- http://localhost:3000/chat-admin - Admin dashboard
+- http://localhost:3000/dashboard - Application dashboard
+- http://localhost:3000/matrix - Matrix visualization
+- http://localhost:3000/mcp - Model Context Protocol interface
+
+### **Chirality Semantic Framework (Port 3002)**
+- http://localhost:3002 - Main framework interface  
+- http://localhost:3002/chat - Chat interface
+- http://localhost:3002/matrices - Matrix operations
+- http://localhost:3002/instantiate - Domain instantiation
+
+### **Backend Services**
+- http://localhost:8080/graphql - GraphQL Playground
+- http://localhost:8080/health - Service health
+
+### **Desktop App**
+- **Electron Window**: Displays chirality-core interface natively
+- **Service Status**: Real-time monitoring of all services
+
+---
+
+## 8) Health Checks
+
+Verify all services are running:
+
+```bash
+# GraphQL Backend
+curl -s http://localhost:8080/health | jq
+
+# AI App
+curl -s http://localhost:3000/api/healthz | jq
+
+# Semantic Framework  
+curl -s http://localhost:3002/api/healthz | jq
+
+# Port status
+lsof -i :3000 -i :3002 -i :8080
+```
+
+Expected output:
+```
+✅ GraphQL: {"status":"healthy","neo4j":"connected"}
+✅ AI App: {"ok":true,"service":"next-js-frontend"}  
+✅ Framework: {"ok":true,"service":"next-js-frontend"}
+✅ Ports: All three ports should show node processes
+```
+
+---
+
+## 9) Daily Workflow
+
+### **Quick Start (4 terminals)**
+```bash
+# Terminal 1: GraphQL
+cd ../chirality-semantic-framework/graphql-service && npm run dev
+
+# Terminal 2: Semantic Framework  
+cd ../chirality-semantic-framework && PORT=3002 npm run dev
+
+# Terminal 3: AI App
+cd ../chirality-ai-app && npm run dev
+
+# Terminal 4: Desktop (optional)
+cd desktop && npm start
+```
+
+### **One-Command Start (helper script)**
+Use the provided startup script:
+```bash
+chmod +x scripts/start-all.sh
+./scripts/start-all.sh
+```
+
+---
+
+## 10) What Runs Where
+
+### **✅ Local Development Services**
+- **GraphQL**: Standalone service (port 8080)
+- **AI App**: Next.js with document generation (port 3000)
+- **Framework**: Next.js with semantic operations (port 3002)
+- **Electron**: Native desktop wrapper
+
+### **☁️ Cloud Services**
+- **Neo4j**: Aura cloud database
+- **OpenAI**: API for language models
+
+### **❌ Not Currently Used**
+- Docker Compose (services run natively for development)
+- Admin UI on port 3001 (optional)
+- Local Neo4j (using cloud instead)
 
 ---
 
 ## Architecture Overview
 
 ### Backend Services (Dockerized)
+
+*Note: Backend services are sourced from the main Chirality Framework repository*
 
 **Neo4j Database**
 - Graph database with APOC plugins
@@ -290,24 +362,26 @@ Or use Electron for double-click startup.
 
 **GraphQL Service** 
 - Built with GraphQL Yoga + @neo4j/graphql
-- Direct Neo4j integration
+- Direct Neo4j integration from `chirality-semantic-framework/graphql/`
 - Health checks and logging
 - Runs on port 8080
 
 **Admin/Orchestrator Service**
 - Express.js API wrapping Python CLI tools
+- Sourced from `chirality-semantic-framework/admin/`
 - Orchestrates semantic matrix operations
 - Health monitoring and job management
 - Runs on port 3001
 
-### Frontend (Local Development)
+### Frontend (Separate Repository)
 
 **Chirality Chat Interface**
+- Located in `chirality-ai-app/` repository
 - Next.js 15.2.3 with OpenAI Responses API
 - Graph-free Chirality Core with document generation
 - RAG-enhanced chat with document injection
 - Streaming responses with SSE
-- Runs on port 3210
+- Runs on port 3000 (development)
 
 ### Desktop Application (Optional)
 
@@ -347,47 +421,66 @@ Or use Electron for double-click startup.
 
 ### Common Issues
 
-**Docker not running** → Compose errors immediately → open Docker Desktop and retry
-
-**Port already in use** (3210/3001/8080/7474) → change the host ports in .env:
+**Port conflicts:**
 ```bash
-./scripts/chirality down
-# Edit .env with new ports
-./scripts/chirality up
+# Check what's using ports
+lsof -i :3000 -i :3002 -i :8080
+
+# Kill specific port
+kill $(lsof -t -i:3000)
 ```
 
-**Apple Silicon images** → ensure your images are arm64 compatible or build locally:
+**Service won't start:**
 ```bash
-./scripts/chirality up --build
+# Check logs in each terminal
+# GraphQL service logs show Neo4j connection
+# Frontend logs show compilation errors
+
+# Clean restart
+rm -rf node_modules package-lock.json
+npm install
 ```
 
-**Neo4j password mismatch** → if you change NEO4J_PASSWORD after first start, reset volumes:
+**Electron app shows blank screen:**
 ```bash
-./scripts/chirality down
-docker volume rm chirality_neo4j-data chirality_neo4j-logs
-./scripts/chirality up
+# Verify services are running first
+curl http://localhost:3000/chirality-core
+curl http://localhost:8080/health
+
+# Check Electron console logs
+# In Electron window: View → Toggle Developer Tools
+```
+
+**ESLint errors preventing startup:**
+```bash
+# Temporarily disable predev checks
+# Edit package.json, remove: "predev": "npm run lint && npm run type-check"
+```
+
+**Neo4j connection errors:**
+```bash
+# Verify cloud Neo4j credentials in .env files
+# Check Neo4j Aura console for connection strings
 ```
 
 ### Debug Commands
 
 ```bash
-# Check service status
-./scripts/chirality status
+# Service health overview
+echo "GraphQL: $(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/health)"
+echo "AI App: $(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/api/healthz)"  
+echo "Framework: $(curl -s -o /dev/null -w '%{http_code}' http://localhost:3002/api/healthz)"
 
-# Follow all logs
-./scripts/chirality logs
+# Test GraphQL connection
+curl -X POST http://localhost:8080/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ __typename }"}'
 
-# Follow specific service logs
-./scripts/chirality logs neo4j
-./scripts/chirality logs graphql
-./scripts/chirality logs admin
+# Check environment variables
+cd ../chirality-ai-app && node -e "console.log(process.env.OPENAI_API_KEY?.slice(0,20) + '...')"
 
-# Test frontend health
-curl http://localhost:3210/api/healthz
-
-# Test backend health
-curl http://localhost:8080/health
-curl http://localhost:3001/api/health
+# Monitor service logs
+# Each service runs in its own terminal, check terminal output for errors
 ```
 
 ---

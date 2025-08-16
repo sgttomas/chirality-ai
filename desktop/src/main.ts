@@ -1,10 +1,8 @@
-const { app, BrowserWindow, shell, dialog, Menu } = require('electron');
-const { spawn } = require('child_process');
-const { join } = require('path');
-const Store = require('electron-store');
-const { readFileSync, existsSync } = require('fs');
-
-const __dirname = __filename;
+import { app, BrowserWindow, shell, dialog, Menu } from 'electron';
+import { spawn, ChildProcess } from 'child_process';
+import { join } from 'path';
+import Store from 'electron-store';
+import { readFileSync, existsSync } from 'fs';
 
 // Store for user preferences
 const store = new Store({
@@ -24,15 +22,15 @@ interface ServiceStatus {
 }
 
 class ChiralityDesktopApp {
-  private mainWindow: BrowserWindow | null = null;
+  private mainWindow: any = null;
   private backendProcess: ChildProcess | null = null;
   private frontendProcess: ChildProcess | null = null;
   private statusCheckInterval: NodeJS.Timeout | null = null;
   
-  // Paths - configured for your setup
-  private readonly projectRoot = '/Users/ryan/Desktop/ai-env/chirality-ai';
-  private readonly frontendDir = '/Users/ryan/Desktop/ai-env/frontend';
-  private readonly frontendPort = 3210;
+  // Paths - configured for post-consolidation setup (Aug 16, 2025)
+  private readonly projectRoot = '/Users/ryan/Desktop/ai-env/chirality-ai';          // Docker orchestration
+  private readonly frontendDir = '/Users/ryan/Desktop/ai-env/chirality-ai-app';      // Latest chat interface
+  private readonly frontendPort = 3000;
   private readonly adminPort = 3001;
   private readonly graphqlPort = 8080;
 
@@ -106,7 +104,7 @@ class ChiralityDesktopApp {
     // Wait for frontend to be ready, then show window
     await this.waitForFrontend();
     
-    this.mainWindow.loadURL(`http://localhost:${this.frontendPort}`);
+    this.mainWindow.loadURL(`http://localhost:${this.frontendPort}/chirality-core`);
     this.mainWindow.show();
 
     // Open dev tools if enabled
@@ -278,7 +276,7 @@ class ChiralityDesktopApp {
     console.log('Starting frontend...');
     
     try {
-      this.frontendProcess = spawn('npm', ['run', 'start'], {
+      this.frontendProcess = spawn('npx', ['next', 'dev'], {
         cwd: this.frontendDir,
         stdio: 'pipe',
         env: { ...process.env, PORT: this.frontendPort.toString() }

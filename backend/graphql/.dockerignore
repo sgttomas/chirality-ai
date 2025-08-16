@@ -1,0 +1,31 @@
+# Dependencies & caches
+node_modules
+npm-debug.log
+yarn.lock
+pnpm-lock.yaml
+
+# Build artifacts
+dist
+.next
+coverage
+.tmp
+.cache
+
+# VCS / editor
+.git
+.gitignore
+.idea
+.vscode
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs
+*.log

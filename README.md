@@ -529,3 +529,8 @@ This project implements a **reasoning compiler** that systematically generates r
 *This monorepo demonstrates the Chirality Framework's ability to bridge human meta-cognition with AI semantic interpolation capabilities, contributing to the advancement of AI reasoning methodology and knowledge generation systems.*
 
 🤖 **Ready to build with the Chirality Framework!**
+## Correspondence
+
+- Consumes and contributes to: `projects/scripts/`
+- Mirror for rapid iteration: `projects/ai-env/scripts/`
+- Role: Orchestration and automation (compose, packaging, bootstrap, validation), keeping scripts battle‑tested under real operations.
